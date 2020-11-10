@@ -1,46 +1,41 @@
 package sign
 
 import (
+	"crypto/ecdsa"
+	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/btcsuite/goleveldb/leveldb/errors"
-	"github.com/jfjun/wallet-tools/crypto"
-	"github.com/jfjun/wallet-tools/crypto/secp256k1"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/fbsobreira/gotron-sdk/pkg/proto/core"
+	"google.golang.org/protobuf/proto"
 )
 
-/*
-trx 离线签名
-*/
-
-
-/*
-	raw_data_hex: 通过wallet/createtransaction接口生成，详细http接口文档： https://github.com/tronprotocol/documentation/blob/master/TRX_CN/Tron-http.md
-	privateKeyStr：16进制的私钥
-*/
-func TrxSignByPrivateStr(raw_data_hex ,privateKeyStr string)(string,error){
-	private_key_bytes,err:=hex.DecodeString(privateKeyStr)
+func SignTransaction(transaction *core.Transaction, privateKey string) (*core.Transaction, error) {
+	privateBytes, err := hex.DecodeString(privateKey)
 	if err != nil {
-		return "",fmt.Errorf("Hex decode private key error,Err=[%v]",err)
+		return nil, fmt.Errorf("hex decode private key error: %v", err)
 	}
-	return TrxSignByPrivateBytes(raw_data_hex,private_key_bytes)
+	priv := crypto.ToECDSAUnsafe(privateBytes)
+	defer zeroKey(priv)
+	rawData, err := proto.Marshal(transaction.GetRawData())
+	if err != nil {
+		return nil, fmt.Errorf("proto marshal tx raw data error: %v", err)
+	}
+	h256h := sha256.New()
+	h256h.Write(rawData)
+	hash := h256h.Sum(nil)
+	signature, err := crypto.Sign(hash, priv)
+	if err != nil {
+		return nil, fmt.Errorf("sign error: %v", err)
+	}
+	transaction.Signature = append(transaction.Signature, signature)
+	return transaction, nil
 }
 
-/*
-	privateKeyBytes: 32字节私钥
-*/
-func TrxSignByPrivateBytes(raw_data_hex string,privateKeyBytes []byte)(string,error){
-	if len(privateKeyBytes)!=32 {
-		return "",errors.New("private key bytes length is not equal 32")
+// zeroKey zeroes a private key in memory.
+func zeroKey(k *ecdsa.PrivateKey) {
+	b := k.D.Bits()
+	for i := range b {
+		b[i] = 0
 	}
-	priv:=secp256k1.ToECDSA(privateKeyBytes)
-	raw_data,err:=hex.DecodeString(raw_data_hex)
-	if err != nil {
-		return "",fmt.Errorf("Hex decode raw data hex error,Err=[%v]",err)
-	}
-	hash:=crypto.Sha256(raw_data)
-	sig,err:=priv.Sign(hash[:])
-	if err != nil {
-		return "",fmt.Errorf(" Trx sign hash error,Err=[%v]",err)
-	}
-	return hex.EncodeToString(sig.Bytes()),nil
 }
