@@ -90,3 +90,15 @@ func Test_TransferTrc10(t *testing.T) {
 	}
 	fmt.Println(common.BytesToHexString(tx.GetTxid()))
 }
+
+func Test_GetTrc10Balance(t *testing.T) {
+	c, err := grpcs.NewClient("47.252.19.181:50051")
+	if err != nil {
+		t.Fatal(err)
+	}
+	amount, err := c.GetTrc10Balance("TFXf56UG1bhWkZq7WQEf7XW5hZXku17E8M", "1000016")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(amount)
+}
