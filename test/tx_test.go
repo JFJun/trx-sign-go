@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/JFJun/trx-sign-go/grpcs"
 	"github.com/JFJun/trx-sign-go/sign"
+	addr "github.com/fbsobreira/gotron-sdk/pkg/address"
 	"github.com/fbsobreira/gotron-sdk/pkg/common"
 	"math/big"
 	"testing"
@@ -64,6 +65,28 @@ func Test_TransferTrc20(t *testing.T) {
 	err = c.BroadcastTransaction(signTx)
 	if err != nil {
 		t.Fatal(err)
+
+	}
+	fmt.Println(common.BytesToHexString(tx.GetTxid()))
+}
+
+func Test_TransferTrc10(t *testing.T) {
+	c, err := grpcs.NewClient("47.252.19.181:50051")
+	if err != nil {
+		t.Fatal(err)
+	}
+	from, _ := addr.Base58ToAddress("TFXf56UG1bhWkZq7WQEf7XW5hZXku17E8M")
+	to, _ := addr.Base58ToAddress("TL4ebGiBbBPjduKaNEoPytVyzEuPEsFYz9")
+	tokenID := "1000016"
+	tx, err := c.GRPC.TransferAsset(from.String(), to.String(), tokenID, int64(123456))
+	signTx, err := sign.SignTransaction(tx.Transaction, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = c.BroadcastTransaction(signTx)
+	if err != nil {
+		t.Fatal(err)
+
 	}
 	fmt.Println(common.BytesToHexString(tx.GetTxid()))
 }
