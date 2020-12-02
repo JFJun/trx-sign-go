@@ -36,7 +36,7 @@ func Test_TransferTrx(t *testing.T) {
 }
 
 func Test_GetBalance(t *testing.T) {
-	c, err := grpcs.NewClient("trx.rylink.io:50051")
+	c, err := grpcs.NewClient("47.252.19.181:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,11 +47,20 @@ func Test_GetBalance(t *testing.T) {
 	d, _ := json.Marshal(acc)
 	fmt.Println(string(d))
 	fmt.Println(acc.GetBalance())
-	amount, err := c.GetTrc20Balance("TQ54dbtZgzxbde1oWCKjQznuijLdwHubh6", "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+
+}
+
+func Test_GetTrc20Balance(t *testing.T) {
+	c, err := grpcs.NewClient("47.252.19.181:50051")
+	if err != nil {
+		t.Fatal(err)
+	}
+	amount, err := c.GetTrc20Balance("TK1UXQBkvAwBypz1bTWcuLHFaB8JmTjoUw", "TWVVcRqRmpyAi9dASvTXrqnS7FrwvDezMn")
 	if err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println(amount.String())
+
 }
 
 func Test_TransferTrc20(t *testing.T) {
@@ -141,7 +150,7 @@ func DecodeCheck(input string) ([]byte, error) {
 }
 
 func Test_GetBlock(t *testing.T) {
-	c, err := grpcs.NewClient("trx.rylink.io:50051")
+	c, err := grpcs.NewClient("47.252.19.181:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +163,7 @@ func Test_GetBlock(t *testing.T) {
 }
 
 func Test_GetTxByTxid(t *testing.T) {
-	c, err := grpcs.NewClient("trx.rylink.io:50051")
+	c, err := grpcs.NewClient("47.252.19.181:50051")
 	if err != nil {
 		t.Fatal(err)
 	}
